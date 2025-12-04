@@ -15,11 +15,22 @@ pipeline {
             }
         }
 
+        stage('Set Version') {
+            steps {
+                script {
+                    // Use short git commit hash as version
+                    VERSION = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    env.VERSION = VERSION
+                    echo "Version set to: ${VERSION}"
+                }
+            }
+        }
+
         stage('Build Backend Image') {
             steps {
                 sh '''
                 cd backend
-                docker build -t ${DOCKERHUB_USER}/simple-backend:latest .
+                docker build -t ${DOCKERHUB_USER}/simple-backend:${VERSION} .
                 '''
             }
         }
@@ -28,7 +39,7 @@ pipeline {
             steps {
                 sh '''
                 cd frontend
-                docker build -t ${DOCKERHUB_USER}/simple-frontend:latest .
+                docker build -t ${DOCKERHUB_USER}/simple-frontend:${VERSION} .
                 '''
             }
         }
@@ -44,8 +55,8 @@ pipeline {
         stage('Push Images') {
             steps {
                 sh '''
-                docker push ${DOCKERHUB_USER}/simple-backend:latest
-                docker push ${DOCKERHUB_USER}/simple-frontend:latest
+                docker push ${DOCKERHUB_USER}/simple-backend:${VERSION}
+                docker push ${DOCKERHUB_USER}/simple-frontend:${VERSION}
                 '''
             }
         }
@@ -53,8 +64,8 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 sh '''
-                kubectl set image deployment/backend backend=${DOCKERHUB_USER}/simple-backend:latest
-                kubectl set image deployment/frontend frontend=${DOCKERHUB_USER}/simple-frontend:latest
+                kubectl set image deployment/backend backend=${DOCKERHUB_USER}/simple-backend:${VERSION}
+                kubectl set image deployment/frontend frontend=${DOCKERHUB_USER}/simple-frontend:${VERSION}
                 '''
             }
         }
@@ -62,3 +73,4 @@ pipeline {
     }
 }
 
+ 
