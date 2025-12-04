@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple App</title>
+</head>
+<body>
+    <h1>Hello from Frontend!</h1>
+    <p>Backend API response:</p>
+    <div id="api-response"></div>
+
+    <script>
+        fetch("/api")
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("api-response").innerText = data.message;
+            });
+    </script>
+</body>
+</html>
